@@ -1,6 +1,12 @@
-import { getFormStats } from '@/actions/form';
+import { getFormStats, getForms } from '@/actions/form';
 import { ReactNode, Suspense } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LuView } from 'react-icons/lu';
 import { FaWpforms } from 'react-icons/fa';
@@ -8,6 +14,9 @@ import { HiCursorClick } from 'react-icons/hi';
 import { TbArrowBounce } from 'react-icons/tb';
 import { Separator } from '@/components/ui/separator';
 import CreateFormButton from '@/components/CreateFormButton';
+import { Form } from '@prisma/client';
+import { Badge } from '@/components/ui/badge';
+import { formatDistance } from 'date-fns';
 
 export default function Home() {
   return (
@@ -18,7 +27,16 @@ export default function Home() {
       <Separator className='my-6' />
       <h2 className='text-4xl font-bold col-span-2'>Manage Forms</h2>
       <Separator className='my-6' />
-      <CreateFormButton />
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+        <CreateFormButton />
+        <Suspense
+          fallback={[1, 2, 3].map(el => (
+            <FormCardSkeleton key={el} />
+          ))}
+        >
+          <FormCards />
+        </Suspense>
+      </div>
     </div>
   );
 }
@@ -113,6 +131,46 @@ function StatsCard({
           <p className='text-xs text-muted-foreground pt-1'>{helperText}</p>
         </div>
       </CardContent>
+    </Card>
+  );
+}
+
+function FormCardSkeleton() {
+  return <Skeleton className='border-2 border-primary/20 w-full h-[190px]' />;
+}
+
+async function FormCards() {
+  const forms = await getForms();
+  return (
+    <>
+      {forms.map(form => (
+        <FormCard key={form.id} form={form} />
+      ))}
+    </>
+  );
+}
+
+function FormCard({ form }: { form: Form }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className='flex items-center justify-between gap-2'>
+          <span className='truncate font-bold'>{form.name}</span>
+          {form.published && <Badge>Aired</Badge>}
+          {!form.published && <Badge variant={'destructive'}>Draft</Badge>}
+        </CardTitle>
+        <CardDescription>
+          {formatDistance(form.createdAt, new Date(), { addSuffix: true })}
+          {form.published && (
+            <span className='flex items-center gap-2'>
+              <LuView className='text-muted-foreground' />
+              <span>{form.visits.toLocaleString()}</span>
+              <FaWpforms className='text-muted-foreground' />
+              <span>{form.submissions.toLocaleString()}</span>
+            </span>
+          )}
+        </CardDescription>
+      </CardHeader>
     </Card>
   );
 }
