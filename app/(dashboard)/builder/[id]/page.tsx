@@ -1,4 +1,5 @@
 import { getFormById } from '@/actions/form';
+import FormBuilder from '@/components/providers/FormBuilder';
 import React from 'react';
 
 const BuilderPage = async ({ params }: { params: { id: string } }) => {
@@ -10,5 +11,3 @@ const BuilderPage = async ({ params }: { params: { id: string } }) => {
 };
 
 export default BuilderPage;
-
-
